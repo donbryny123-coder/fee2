@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    {% include "pwa_head.html" %}
+    <title>{{ school_class.name }} | Fees Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static_css') }}">
+</head>
+
+<body class="theme-{{ theme }}{% if school_background_url %} has-school-background{% endif %}" {% if
+    school_background_url %} style="--school-background: url('{{ school_background_url }}')" {% endif %}>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand"><span class="brand-mark">F</span><span>Fees Management System</span></div>
+            <div class="school-switcher">{% if school_logo_url %}<img class="school-logo" src="{{ school_logo_url }}"
+                    alt="{{ school_name }} logo">{% else %}<span class="school-avatar">{{ school_name[:1]|upper
+                    }}</span>{% endif %}<span><b>{{
+                        school_name }}</b><small>{{ academic_year }} · {{ term_name }}</small></span></div>
+            <nav class="main-nav">
+                <a class="nav-item" href="{{ url_for('dashboard') }}">▦ Overview</a><a class="nav-item active"
+                    href="{{ url_for('classes_page') }}">⌘ Classes</a><a class="nav-item"
+                    href="{{ url_for('enrollment_page') }}">♙ Enrollment</a>
+                <a class="nav-item" href="{{ url_for('families_page') }}">♧ Families</a><a class="nav-item"
+                    href="{{ url_for('fees_status_page') }}">◉ Fees status</a>
+                <p class="nav-label second">Manage</p><a class="nav-item" href="{{ url_for('settings_page') }}">⚙
+                    Settings</a>
+            </nav>
+            <a class="sidebar-footer help-link" href="{{ url_for('help_page') }}"><span
+                    class="help-dot">?</span><span><b>Help centre</b><small>Guides and recovery</small></span></a>
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb"><a href="{{ url_for('dashboard') }}">Overview</a><span
+                        class="slash">/</span><strong>{{ school_class.name }}</strong></div>
+                <a class="home-button" href="{{ url_for('dashboard') }}">🏠 Home</a>
+                <div class="topbar-tools">
+                    <form class="year-switcher" method="post" action="{{ url_for('switch_academic_year') }}">
+                        <span>Year</span><input name="academic_year" value="{{ academic_year }}"
+                            pattern="[0-9]{4}/[0-9]{4}" aria-label="Academic year"><button type="submit"
+                            aria-label="Save academic year">↵</button>
+                    </form>
+                    <form class="theme-switcher" method="post" action="{{ url_for('set_theme') }}"><span>◐</span><select
+                            name="theme" aria-label="Colour theme" onchange="this.form.submit()">
+                            <option value="system" {% if theme=='system' %}selected{% endif %}>System</option>
+                            <option value="light" {% if theme=='light' %}selected{% endif %}>Light</option>
+                            <option value="dark" {% if theme=='dark' %}selected{% endif %}>Dark</option>
+                        </select></form>
+                    <form class="term-switcher" method="post" action="{{ url_for('switch_term') }}"><span>{{
+                            academic_year }}</span><select name="term" onchange="this.form.submit()">{% for number, name
+                            in terms.items() %}<option value="{{ number }}" {% if number==term %}selected{% endif %}>{{
+                                name }}</option>{% endfor %}</select></form>
+                    {% if admin_name %}<div class="profile-pill">{{ admin_name }} · Administrator</div>{% endif %}
+                </div>
+            </header>
+            <section class="page-content"><a class="back-link" href="{{ url_for('classes_page') }}">← Back to
+                    classes</a>
+                <div class="detail-heading">
+                    <div>
+                        <p class="eyebrow">{{ term_name|upper }} · CLASS FEE DETAILS</p>
+                        <h1>{{ school_class.name }}</h1>
+                        <p class="subheading">{{ school_class.students }} students · Select a student to open their
+                            family profile when assigned, or their fee details.</p>
+                    </div>
+                    <div class="class-rate"><span>Collection rate</span><strong>{{ ((school_class.paid /
+                            school_class.expected * 100)|round|int) if school_class.expected else 0 }}%</strong></div>
+                </div>
+                <section class="mini-summary">
+                    <div><span>Expected</span><b>{{ school_class.expected|money }}</b></div>
+                    <div><span>Paid so far</span><b class="green-text">{{ school_class.paid|money }}</b></div>
+                    <div><span>Arrears owing</span><b class="orange-text">{{ (school_class.expected -
+                            school_class.paid)|money }}</b></div>
+                </section>
+                <details class="settings-panel" open>
+                    <summary>⚙ Class fees and books <span>Applied to every {{ school_class.name }} student for {{
+                            term_name }}</span></summary>
+                    <form class="fee-settings-form" method="post"
+                        action="{{ url_for('update_class_fees', class_id=school_class.id) }}">
+                        <label>Fees (GH₵)<input type="number" name="fees" min="0"
+                                value="{{ school_class.fees.fees }}"></label>
+                        <label>Textbooks (GH₵)<input type="number" name="textbooks" min="0"
+                                value="{{ school_class.fees.textbooks }}"></label>
+                        <label>Exercise books (GH₵)<input type="number" name="exercise_books" min="0"
+                                value="{{ school_class.fees.exercise_books }}"></label>
+                        <label>Notebooks (GH₵)<input type="number" name="notebooks" min="0"
+                                value="{{ school_class.fees.notebooks }}"></label>
+                        <div class="fee-total"><small>Total fee per student</small><strong>{{
+                                school_class.fee_total|money }}</strong></div>
+                        <button class="primary-button" type="submit">Save class fees</button>
+                    </form>
+                </details>
+                <div class="section-heading students-section-heading">
+                    <div>
+                        <h2>Students</h2>
+                        <p>Paid amount and arrears for each student.</p>
+                    </div>
+                    <div class="students-tools">
+                        <form class="view-controls" method="get"><label class="search-box"><span>⌕</span><input name="q"
+                                    value="{{ query }}" placeholder="Search student"></label><button
+                                class="filter-button" type="submit">Search</button></form>
+                        <details class="add-student-menu">
+                            <summary class="primary-button">＋ Add student</summary>
+                            <form class="add-student-form" method="post"
+                                action="{{ url_for('add_student', class_id=school_class.id) }}">
+                                <label>Student name<input type="text" name="name" required autocomplete="off"
+                                        placeholder="e.g. Ama Mensah"></label>
+                                <label>Gender<select name="gender" required>
+                                        <option value="">Choose gender</option>
+                                        <option value="male">Male</option>
+                                        <option value="female">Female</option>
+                                    </select></label>
+                                <label>Family profile<select name="family_id">
+                                        <option value="">No family profile</option>{% for family in families %}<option
+                                            value="{{ family.id }}">{{ family.name }}</option>{% endfor %}
+                                    </select></label>
+                                <button class="primary-button" type="submit">Add student</button>
+                            </form>
+                        </details>
+                    </div>
+                </div>
+                <div class="student-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Fee status</th>
+                                <th>Paid so far</th>
+                                <th>Arrears owing</th>
+                                <th></th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>{% for student in students %}<tr>
+                                <td>
+                                    <div class="student-name"><span class="tiny-avatar">{{ student.initials }}</span><a
+                                            class="student-link"
+                                            href="{{ url_for('family_details', family_id=student.family_id) if student.family_id else url_for('student_details', student_id=student.id) }}">{{
+                                            student.name }}</a></div>
+                                </td>
+                                <td><span class="status-pill {{ student.status_class }}">{{ student.status }}</span>
+                                </td>
+                                <td>{{ student.paid|money }}</td>
+                                <td class="{{ 'orange-text' if student.owing else 'green-text' }}">{{
+                                    student.owing|money }}</td>
+                                <td><a class="row-link"
+                                        href="{{ url_for('family_details', family_id=student.family_id) if student.family_id else url_for('student_details', student_id=student.id) }}">→</a>
+                                </td>
+                                <td>
+                                    <form method="post" action="{{ url_for('delete_student', student_id=student.id) }}">
+                                        <button class="delete-button" type="submit">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>{% else %}<tr>
+                                <td colspan="6">No students match your search.</td>
+                            </tr>{% endfor %}</tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

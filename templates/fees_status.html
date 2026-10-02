@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    {% include "pwa_head.html" %}
+    <title>Fees status | Fees Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static_css') }}">
+</head>
+
+<body class="theme-{{ theme }}{% if school_background_url %} has-school-background{% endif %}" {% if
+    school_background_url %} style="--school-background: url('{{ school_background_url }}')" {% endif %}>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand"><span class="brand-mark">F</span><span>Fees Management System</span></div>
+            <div class="school-switcher">{% if school_logo_url %}<img class="school-logo" src="{{ school_logo_url }}"
+                    alt="{{ school_name }} logo">{% else %}<span class="school-avatar">{{ school_name[:1]|upper
+                    }}</span>{% endif %}<span><b>{{
+                        school_name }}</b><small>{{ academic_year }} · {{ term_name }}</small></span></div>
+            <nav class="main-nav">
+                <a class="nav-item" href="{{ url_for('dashboard') }}">▦ Overview</a>
+                <a class="nav-item" href="{{ url_for('classes_page') }}">⌘ Classes</a>
+                <a class="nav-item" href="{{ url_for('enrollment_page') }}">♙ Enrollment</a>
+                <a class="nav-item" href="{{ url_for('families_page') }}">♧ Families</a>
+                <a class="nav-item active" href="{{ url_for('fees_status_page') }}">◉ Fees status</a>
+                <a class="nav-item" href="{{ url_for('settings_page') }}">⚙ Settings</a>
+            </nav>
+            <a class="sidebar-footer help-link" href="{{ url_for('help_page') }}"><span
+                    class="help-dot">?</span><span><b>Help centre</b><small>Guides and recovery</small></span></a>
+            {% if admin_name %}<div class="user-profile">
+                <div class="user-avatar">{{ admin_initials }}</div>
+                <div><b>{{ admin_name }}</b><small>Administrator</small></div>
+            </div>{% endif %}
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb"><a href="{{ url_for('dashboard') }}">Overview</a><span
+                        class="slash">/</span><strong>Fees status</strong></div>
+                <a class="home-button" href="{{ url_for('dashboard') }}">🏠 Home</a>
+                <form class="theme-switcher" method="post" action="{{ url_for('set_theme') }}"><select name="theme"
+                        aria-label="Colour theme" onchange="this.form.submit()">
+                        <option value="system" {% if theme=='system' %}selected{% endif %}>System</option>
+                        <option value="light" {% if theme=='light' %}selected{% endif %}>Light</option>
+                        <option value="dark" {% if theme=='dark' %}selected{% endif %}>Dark</option>
+                    </select></form>
+            </header>
+            <section class="page-content">
+                <div class="page-title-row">
+                    <div>
+                        <p class="eyebrow">{{ school_name }} · {{ term_name }}</p>
+                        <h1>Fees status</h1>
+                        <p class="subheading">Review paid and outstanding fees across classes.</p>
+                    </div>
+                </div>
+                <form class="fees-filter-form" method="get" action="{{ url_for('fees_status_page') }}">
+                    <label>Class<select name="class_id">
+                            <option value="">All classes</option>{% for school_class in classes %}<option
+                                value="{{ school_class.id }}" {% if class_id==school_class.id %}selected{% endif %}>{{
+                                school_class.name }}</option>{% endfor %}
+                        </select></label>
+                    <label>Payment status<select name="status">
+                            <option value="all" {% if selected_status=='all' %}selected{% endif %}>All students</option>
+                            <option value="owing" {% if selected_status=='owing' %}selected{% endif %}>Owing fees
+                            </option>
+                            <option value="paid" {% if selected_status=='paid' %}selected{% endif %}>Paid in full
+                            </option>
+                        </select></label>
+                    <button class="filter-button" type="submit">Apply filters</button>
+                </form>
+                <div class="student-table-wrap fees-status-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Student</th>
+                                <th>Total due</th>
+                                <th>Paid</th>
+                                <th>Balance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>{% for student in students %}<tr>
+                                <td>{{ student.class_name }}</td>
+                                <td>{% if student.family_id %}<a class="student-link"
+                                        href="{{ url_for('family_details', family_id=student.family_id) }}">{{
+                                        student.name }} · Family</a>{% else %}<a class="student-link"
+                                        href="{{ url_for('student_details', student_id=student.id) }}">{{ student.name
+                                        }}</a>{% endif %}</td>
+                                <td>{{ student.amount_due|money }}</td>
+                                <td>{{ student.paid|money }}</td>
+                                <td class="{{ 'orange-text' if student.owing else 'green-text' }}">{{
+                                    student.owing|money }}</td>
+                                <td><span class="status-pill {{ student.status_class }}">{{ student.status }}</span>
+                                </td>
+                            </tr>{% else %}<tr>
+                                <td colspan="6">No students match these filters.</td>
+                            </tr>{% endfor %}</tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

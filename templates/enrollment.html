@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    {% include "pwa_head.html" %}
+    <title>Enrollment | Fees Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static_css') }}">
+</head>
+
+<body class="theme-{{ theme }}{% if school_background_url %} has-school-background{% endif %}" {% if
+    school_background_url %} style="--school-background: url('{{ school_background_url }}')" {% endif %}>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand"><span class="brand-mark">F</span><span>Fees Management System</span></div>
+            <div class="school-switcher">{% if school_logo_url %}<img class="school-logo" src="{{ school_logo_url }}"
+                    alt="{{ school_name }} logo">{% else %}<span class="school-avatar">{{ school_name[:1]|upper
+                    }}</span>{% endif %}<span><b>{{
+                        school_name }}</b><small>{{ academic_year }} · {{ term_name }}</small></span></div>
+            <nav class="main-nav">
+                <a class="nav-item" href="{{ url_for('dashboard') }}">▦ Overview</a>
+                <a class="nav-item" href="{{ url_for('classes_page') }}">⌘ Classes</a>
+                <a class="nav-item active" href="{{ url_for('enrollment_page') }}">♙ Enrollment</a>
+                <a class="nav-item" href="{{ url_for('families_page') }}">♧ Families</a>
+                <a class="nav-item" href="{{ url_for('fees_status_page') }}">◉ Fees status</a>
+                <a class="nav-item" href="{{ url_for('settings_page') }}">⚙ Settings</a>
+            </nav>
+            <a class="sidebar-footer help-link" href="{{ url_for('help_page') }}"><span
+                    class="help-dot">?</span><span><b>Help centre</b><small>Guides and recovery</small></span></a>
+            {% if admin_name %}<div class="user-profile">
+                <div class="user-avatar">{{ admin_initials }}</div>
+                <div><b>{{ admin_name }}</b><small>Administrator</small></div>
+            </div>{% endif %}
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb"><a href="{{ url_for('dashboard') }}">Overview</a><span
+                        class="slash">/</span><strong>Enrollment</strong></div>
+                <a class="home-button" href="{{ url_for('dashboard') }}">🏠 Home</a>
+                <form class="theme-switcher" method="post" action="{{ url_for('set_theme') }}"><select name="theme"
+                        aria-label="Colour theme" onchange="this.form.submit()">
+                        <option value="system" {% if theme=='system' %}selected{% endif %}>System</option>
+                        <option value="light" {% if theme=='light' %}selected{% endif %}>Light</option>
+                        <option value="dark" {% if theme=='dark' %}selected{% endif %}>Dark</option>
+                    </select></form>
+            </header>
+            <section class="page-content">
+                <div class="page-title-row">
+                    <div>
+                        <p class="eyebrow">{{ school_name }}</p>
+                        <h1>Enrollment</h1>
+                        <p class="subheading">Student counts by class and gender.</p>
+                    </div>
+                </div>
+                <section class="enrollment-summary" aria-label="School enrollment totals">
+                    <article><span>Total students</span><strong>{{ totals.students }}</strong></article>
+                    <article><span>Boys</span><strong>{{ totals.boys }}</strong></article>
+                    <article><span>Girls</span><strong>{{ totals.girls }}</strong></article>
+                    <article><span>Gender not recorded</span><strong>{{ totals.unrecorded }}</strong></article>
+                </section>
+                <div class="student-table-wrap enrollment-table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Total students</th>
+                                <th>Boys</th>
+                                <th>Girls</th>
+                                <th>Not recorded</th>
+                            </tr>
+                        </thead>
+                        <tbody>{% for item in classes %}<tr>
+                                <td><a class="student-link" href="{{ url_for('class_details', class_id=item.id) }}">{{
+                                        item.name }}</a></td>
+                                <td>{{ item.total }}</td>
+                                <td>{{ item.boys }}</td>
+                                <td>{{ item.girls }}</td>
+                                <td>{{ item.unrecorded }}</td>
+                            </tr>{% endfor %}
+                            <tr class="enrollment-total">
+                                <th>School total</th>
+                                <th>{{ totals.students }}</th>
+                                <th>{{ totals.boys }}</th>
+                                <th>{{ totals.girls }}</th>
+                                <th>{{ totals.unrecorded }}</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

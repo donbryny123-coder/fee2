@@ -1,0 +1,66 @@
+<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<link rel="icon" href="{{ url_for('static', filename='icons/icon-192.svg') }}" type="image/svg+xml">
+<meta name="theme-color" content="#173b35">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Fees App">
+<script>
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("{{ url_for('service_worker') }}").catch(() => { });
+        });
+    }
+
+    (() => {
+        let installButton = null;
+        let deferredPrompt = null;
+
+        const ensureInstallButton = () => {
+            if (installButton || !document.body) return;
+            installButton = document.createElement("button");
+            installButton.type = "button";
+            installButton.textContent = "Install app";
+            installButton.setAttribute("aria-label", "Install the app");
+            installButton.style.position = "fixed";
+            installButton.style.right = "16px";
+            installButton.style.bottom = "16px";
+            installButton.style.zIndex = "9999";
+            installButton.style.border = "none";
+            installButton.style.borderRadius = "999px";
+            installButton.style.background = "#173b35";
+            installButton.style.color = "#fff";
+            installButton.style.padding = "12px 18px";
+            installButton.style.fontWeight = "700";
+            installButton.style.boxShadow = "0 12px 28px rgba(23, 59, 53, 0.24)";
+            installButton.style.cursor = "pointer";
+            installButton.style.display = "none";
+            document.body.appendChild(installButton);
+
+            installButton.addEventListener("click", async () => {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                await deferredPrompt.userChoice;
+                deferredPrompt = null;
+                installButton.style.display = "none";
+            });
+        };
+
+        const ready = () => {
+            ensureInstallButton();
+            window.addEventListener("beforeinstallprompt", (event) => {
+                event.preventDefault();
+                deferredPrompt = event;
+                if (installButton) {
+                    installButton.style.display = "block";
+                }
+            });
+        };
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", ready, { once: true });
+        } else {
+            ready();
+        }
+    })();
+</script>

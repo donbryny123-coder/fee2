@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    {% include "pwa_head.html" %}
+    <title>Settings | Fees Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static_css') }}">
+</head>
+
+<body class="theme-{{ theme }}{% if school_background_url %} has-school-background{% endif %}" {% if
+    school_background_url %} style="--school-background: url('{{ school_background_url }}')" {% endif %}>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand"><span class="brand-mark">F</span><span>Fees Management System</span></div>
+            <div class="school-switcher">{% if school_logo_url %}<img class="school-logo" src="{{ school_logo_url }}"
+                    alt="{{ school_name }} logo">{% else %}<span class="school-avatar">{{ school_name[:1]|upper
+                    }}</span>{% endif %}<span><b>{{
+                        school_name }}</b><small>{{ academic_year }} · {{ term_name }}</small></span></div>
+            <nav class="main-nav">
+                <a class="nav-item" href="{{ url_for('dashboard') }}">▦ Overview</a>
+                <a class="nav-item" href="{{ url_for('classes_page') }}">⌘ Classes</a>
+                <a class="nav-item" href="{{ url_for('enrollment_page') }}">♙ Enrollment</a>
+                <a class="nav-item" href="{{ url_for('families_page') }}">♧ Families</a>
+                <a class="nav-item" href="{{ url_for('fees_status_page') }}">◉ Fees status</a>
+                <p class="nav-label second">Manage</p>
+                <a class="nav-item active" href="{{ url_for('settings_page') }}">⚙ Settings</a>
+            </nav>
+            <a class="sidebar-footer help-link" href="{{ url_for('help_page') }}">
+                <div class="help-dot">?</div>
+                <div><b>Help centre</b><small>Guides and recovery</small></div>
+            </a>
+            {% if admin_name %}
+            <div class="user-profile">
+                <div class="user-avatar">{{ admin_initials }}</div>
+                <div><b>{{ admin_name }}</b><small>Administrator</small></div>
+            </div>
+            {% else %}
+            <a class="profile-setup-link" href="#profile">Add administrator profile</a>
+            {% endif %}
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb"><a href="{{ url_for('dashboard') }}">Overview</a><span
+                        class="slash">/</span><strong>Settings</strong></div>
+                <a class="home-button" href="{{ url_for('dashboard') }}">🏠 Home</a>
+                <div class="topbar-tools">
+                    <form class="theme-switcher" method="post" action="{{ url_for('set_theme') }}"><span>◐</span><select
+                            name="theme" aria-label="Colour theme" onchange="this.form.submit()">
+                            <option value="system" {% if theme=='system' %}selected{% endif %}>System</option>
+                            <option value="light" {% if theme=='light' %}selected{% endif %}>Light</option>
+                            <option value="dark" {% if theme=='dark' %}selected{% endif %}>Dark</option>
+                        </select></form>
+                </div>
+            </header>
+            <section class="page-content settings-page">
+                <div class="settings-page-heading">
+                    <p class="eyebrow">SCHOOL ADMINISTRATION</p>
+                    <h1>Settings</h1>
+                    <p class="subheading">Manage the school identity, administrator profile, and data backups.</p>
+                </div>
+                {% if notice %}<p class="settings-notice {{ notice_type }}" role="status">{{ notice }}</p>{% endif %}
+                <section class="settings-section" id="profile">
+                    <div class="settings-section-heading">
+                        <div>
+                            <h2>School and administrator</h2>
+                            <p>These names appear across the fee workspace.</p>
+                        </div>
+                    </div>
+                    <form class="settings-form" method="post" action="{{ url_for('save_profile') }}">
+                        <label>School name<input type="text" name="school_name" value="{{ school_name }}"
+                                maxlength="120" required></label>
+                        <label>Administrator name<input type="text" name="admin_name" value="{{ admin_name }}"
+                                maxlength="120" placeholder="Enter your name"></label>
+                        <button class="primary-button" type="submit">Save profile</button>
+                    </form>
+                    {% if admin_name %}<form class="delete-profile-form" method="post"
+                        action="{{ url_for('delete_profile') }}">
+                        <label class="restore-confirm"><input type="checkbox" name="confirm_delete" value="yes"
+                                required> Clear the administrator name from this school.</label>
+                        <button class="danger-button" type="submit">Delete administrator profile</button>
+                    </form>{% endif %}
+                </section>
+                <section class="settings-section" id="appearance">
+                    <div class="settings-section-heading">
+                        <div>
+                            <h2>School logo and background</h2>
+                            <p>These images are saved separately for the selected school and included in its backup.</p>
+                        </div>
+                    </div>
+                    <form class="appearance-form" method="post" action="{{ url_for('save_school_appearance') }}"
+                        enctype="multipart/form-data">
+                        <label>School logo<input type="file" name="logo"
+                                accept="image/png,image/jpeg,image/webp"></label>
+                        {% if school_logo_url %}<div class="appearance-preview"><img src="{{ school_logo_url }}"
+                                alt="Current school logo"><label class="restore-confirm"><input type="checkbox"
+                                    name="clear_logo" value="yes"> Remove current logo</label></div>{% endif %}
+                        <label>Page background image<input type="file" name="background"
+                                accept="image/png,image/jpeg,image/webp"></label>
+                        {% if school_background_url %}<div class="appearance-preview background-preview"><img
+                                src="{{ school_background_url }}" alt="Current page background"><label
+                                class="restore-confirm"><input type="checkbox" name="clear_background" value="yes">
+                                Remove current background</label></div>{% endif %}
+                        <p class="settings-help">PNG, JPEG, or WebP. Maximum 5 MB per image. A soft wash stays over the
+                            background to keep text readable.</p>
+                        <button class="primary-button" type="submit">Save appearance</button>
+                    </form>
+                </section>
+                <section class="settings-section" id="schools">
+                    <div class="settings-section-heading">
+                        <div>
+                            <h2>Schools</h2>
+                            <p>Each school keeps its students, fees, and payments in a separate database.</p>
+                        </div>
+                    </div>
+                    <form class="school-switch-form" method="post" action="{{ url_for('switch_school') }}">
+                        <label>Current school<select name="school_id" onchange="this.form.submit()">
+                                {% for school in schools %}<option value="{{ school.id }}" {% if
+                                    school.id==active_school_id %}selected{% endif %}>{{ school.name }}</option>{%
+                                endfor %}
+                            </select></label>
+                    </form>
+                    <form class="school-add-form" method="post" action="{{ url_for('add_school') }}">
+                        <label>New school name<input type="text" name="school_name" maxlength="120" required
+                                placeholder="Enter school name"></label>
+                        <button class="primary-button" type="submit">＋ Add school</button>
+                    </form>
+                    {% if active_school_id != 'default' %}<form class="delete-school-form" method="post"
+                        action="{{ url_for('delete_school', school_id=active_school_id) }}">
+                        <label class="restore-confirm"><input type="checkbox" name="confirm_delete" value="yes"
+                                required> Delete this school and all its records permanently.</label>
+                        <button class="danger-button" type="submit">Delete current school</button>
+                    </form>{% endif %}
+                </section>
+                <section class="settings-section">
+                    <div class="settings-section-heading">
+                        <div>
+                            <h2>Backups and recovery</h2>
+                            <p>Each school is stored in its own local SQLite database.</p>
+                        </div>
+                    </div>
+                    <div class="backup-action">
+                        <div><strong>Download a full backup for {{ school_name }}</strong>
+                            <p>Keep a copy outside this app folder, such as on another drive or secure cloud storage.
+                                Download a backup for each school.
+                            </p>
+                        </div>
+                        <a class="primary-button" href="{{ url_for('download_backup') }}">Download backup</a>
+                    </div>
+                    <details class="restore-panel">
+                        <summary>Restore from a backup</summary>
+                        <form method="post" action="{{ url_for('restore_backup') }}" enctype="multipart/form-data">
+                            <label>Backup file<input type="file" name="backup_file"
+                                    accept=".sqlite,.db,application/vnd.sqlite3" required></label>
+                            <label class="restore-confirm"><input type="checkbox" name="confirm_restore" value="yes"
+                                    required> I understand that restoring replaces the current records.</label>
+                            <button class="danger-button" type="submit">Restore backup</button>
+                        </form>
+                    </details>
+                    <p class="settings-help">If the app folder is deleted, reinstall or restore the app, then upload a
+                        backup here. A backup stored only inside the deleted folder cannot be recovered.</p>
+                </section>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

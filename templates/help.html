@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    {% include "pwa_head.html" %}
+    <title>Help | Fees Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static_css') }}">
+</head>
+
+<body class="theme-{{ theme }}{% if school_background_url %} has-school-background{% endif %}" {% if
+    school_background_url %} style="--school-background: url('{{ school_background_url }}')" {% endif %}>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand"><span class="brand-mark">F</span><span>Fees Management System</span></div>
+            <div class="school-switcher">{% if school_logo_url %}<img class="school-logo" src="{{ school_logo_url }}"
+                    alt="{{ school_name }} logo">{% else %}<span class="school-avatar">{{ school_name[:1]|upper
+                    }}</span>{% endif %}<span><b>{{
+                        school_name }}</b><small>{{ academic_year }} · {{ term_name }}</small></span></div>
+            <nav class="main-nav">
+                <a class="nav-item" href="{{ url_for('dashboard') }}">▦ Overview</a>
+                <a class="nav-item" href="{{ url_for('classes_page') }}">⌘ Classes</a>
+                <a class="nav-item" href="{{ url_for('enrollment_page') }}">♙ Enrollment</a>
+                <a class="nav-item" href="{{ url_for('families_page') }}">♧ Families</a>
+                <a class="nav-item" href="{{ url_for('fees_status_page') }}">◉ Fees status</a>
+                <a class="nav-item" href="{{ url_for('settings_page') }}">⚙ Settings</a>
+            </nav>
+            <a class="sidebar-footer help-link active" href="{{ url_for('help_page') }}"><span
+                    class="help-dot">?</span><span><b>Help centre</b><small>Guides and recovery</small></span></a>
+            {% if admin_name %}<div class="user-profile">
+                <div class="user-avatar">{{ admin_initials }}</div>
+                <div><b>{{ admin_name }}</b><small>Administrator</small></div>
+            </div>{% endif %}
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb"><a href="{{ url_for('dashboard') }}">Overview</a><span
+                        class="slash">/</span><strong>Help</strong></div>
+                <a class="home-button" href="{{ url_for('dashboard') }}">🏠 Home</a>
+                <form class="theme-switcher" method="post" action="{{ url_for('set_theme') }}"><select name="theme"
+                        aria-label="Colour theme" onchange="this.form.submit()">
+                        <option value="system" {% if theme=='system' %}selected{% endif %}>System</option>
+                        <option value="light" {% if theme=='light' %}selected{% endif %}>Light</option>
+                        <option value="dark" {% if theme=='dark' %}selected{% endif %}>Dark</option>
+                    </select></form>
+            </header>
+            <section class="page-content help-page">
+                <div class="page-title-row">
+                    <div>
+                        <p class="eyebrow">SUPPORT</p>
+                        <h1>Help centre</h1>
+                        <p class="subheading">Answers for the tasks you do most often.</p>
+                    </div>
+                </div>
+                <section class="help-section">
+                    <h2>Add a student</h2>
+                    <p>Open <a href="{{ url_for('classes_page') }}">Classes</a>, choose the class, then use <strong>Add
+                            student</strong> above the student list. Enter the name and select Male or Female.
+                        Enrollment updates as soon as the student is saved.</p>
+                </section>
+                <section class="help-section">
+                    <h2>Switch schools</h2>
+                    <p>Go to <a href="{{ url_for('settings_page') }}#schools">Settings → Schools</a> and choose a
+                        school. Its students, fees, and payments are kept separate from other schools.</p>
+                </section>
+                <section class="help-section">
+                    <h2>Recover your records</h2>
+                    <p>In <a href="{{ url_for('settings_page') }}">Settings</a>, download a backup for each school and
+                        store it outside this app folder. If the folder is deleted, restore the app, select the school,
+                        then upload its backup under Backups and recovery.</p>
+                </section>
+                <section class="help-section">
+                    <h2>Enrollment counts</h2>
+                    <p>The <a href="{{ url_for('enrollment_page') }}">Enrollment</a> page shows total students, boys,
+                        girls, and students whose gender has not yet been recorded. Existing students are included in
+                        the total.</p>
+                </section>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>

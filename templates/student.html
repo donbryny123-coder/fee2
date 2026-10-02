@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    {% include "pwa_head.html" %}
+    <title>{{ student.name }} | Fees Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static_css') }}">
+</head>
+
+<body class="theme-{{ theme }}{% if school_background_url %} has-school-background{% endif %}" {% if
+    school_background_url %} style="--school-background: url('{{ school_background_url }}')" {% endif %}>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand"><span class="brand-mark">F</span><span>Fees Management System</span></div>
+            <div class="school-switcher">{% if school_logo_url %}<img class="school-logo" src="{{ school_logo_url }}"
+                    alt="{{ school_name }} logo">{% else %}<span class="school-avatar">{{ school_name[:1]|upper
+                    }}</span>{% endif %}<span><b>{{
+                        school_name }}</b><small>{{ academic_year }} · {{ term_name }}</small></span></div>
+            <nav class="main-nav">
+                <a class="nav-item" href="{{ url_for('dashboard') }}">▦ Overview</a><a class="nav-item"
+                    href="{{ url_for('classes_page') }}">⌘ Classes</a><a class="nav-item active"
+                    href="{{ url_for('enrollment_page') }}">♙ Enrollment</a>
+                <a class="nav-item" href="{{ url_for('families_page') }}">♧ Families</a><a class="nav-item"
+                    href="{{ url_for('fees_status_page') }}">◉ Fees status</a>
+                <p class="nav-label second">Manage</p><a class="nav-item" href="{{ url_for('settings_page') }}">⚙
+                    Settings</a>
+            </nav>
+            <a class="sidebar-footer help-link" href="{{ url_for('help_page') }}"><span
+                    class="help-dot">?</span><span><b>Help centre</b><small>Guides and recovery</small></span></a>
+        </aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="breadcrumb"><a href="{{ url_for('dashboard') }}">Overview</a><span class="slash">/</span><a
+                        href="{{ url_for('class_details', class_id=school_class.id) }}">{{ school_class.name }}</a><span
+                        class="slash">/</span><strong>{{ student.name }}</strong></div>
+                <a class="home-button" href="{{ url_for('dashboard') }}">🏠 Home</a>
+                <div class="topbar-tools">
+                    <form class="year-switcher" method="post" action="{{ url_for('switch_academic_year') }}">
+                        <span>Year</span><input name="academic_year" value="{{ academic_year }}"
+                            pattern="[0-9]{4}/[0-9]{4}" aria-label="Academic year"><button type="submit"
+                            aria-label="Save academic year">↵</button>
+                    </form>
+                    <form class="theme-switcher" method="post" action="{{ url_for('set_theme') }}"><span>◐</span><select
+                            name="theme" aria-label="Colour theme" onchange="this.form.submit()">
+                            <option value="system" {% if theme=='system' %}selected{% endif %}>System</option>
+                            <option value="light" {% if theme=='light' %}selected{% endif %}>Light</option>
+                            <option value="dark" {% if theme=='dark' %}selected{% endif %}>Dark</option>
+                        </select></form>
+                    <form class="term-switcher" method="post" action="{{ url_for('switch_term') }}"><span>{{
+                            academic_year }}</span><select name="term" onchange="this.form.submit()">{% for number, name
+                            in terms.items() %}<option value="{{ number }}" {% if number==term %}selected{% endif %}>{{
+                                name }}</option>{% endfor %}</select></form>
+                    {% if admin_name %}<div class="profile-pill">{{ admin_name }} · Administrator</div>{% endif %}
+                </div>
+            </header>
+            <section class="page-content"><a class="back-link"
+                    href="{{ url_for('class_details', class_id=school_class.id) }}">← Back to {{ school_class.name
+                    }}</a>
+                <div class="detail-heading student-detail-heading">
+                    <div class="student-hero">
+                        <div class="large-avatar">{{ student.initials }}</div>
+                        <div>
+                            <p class="eyebrow">STUDENT FEE PROFILE</p>
+                            <h1>{{ student.name }}</h1>
+                            <p class="subheading">{{ school_class.name }} · Student ID {{ student.id }}</p>
+                            {% if student.family_id %}<a class="family-profile-link"
+                                href="{{ url_for('family_details', family_id=student.family_id) }}">View family
+                                fees</a>{% endif %}
+                        </div>
+                    </div><span class="status-pill {{ student.status_class }}">{{ student.status }}</span>
+                </div>
+                <section class="mini-summary">
+                    <div><span>Total fee</span><b>{{ student.total|money }}</b></div>
+                    <div><span>Amount paid</span><b class="green-text">{{ student.paid|money }}</b></div>
+                    <div><span>Arrears owing</span><b class="orange-text">{{ student.owing|money }}</b></div>
+                </section>
+                <div class="fee-breakdown"><strong>Fees total {{ student.total|money }}</strong><span>Fees {{
+                        school_class.fees.fees|money }}</span><span>Textbooks {{
+                        school_class.fees.textbooks|money }}</span><span>Exercise books {{
+                        school_class.fees.exercise_books|money }}</span><span>Notebooks {{
+                        school_class.fees.notebooks|money }}</span></div>
+                <div class="books-summary">
+                    <div><span>Books total</span><strong>{{ student.books_total|money }}</strong></div>
+                    <div><span>Books paid</span><strong>{{ student.books_paid|money }}</strong></div>
+                    <div><span>Books balance</span><strong>{{ student.books_owing|money }}</strong></div>
+                    <div><span>Paid in full</span><strong>{{ '✓ Yes' if student.books_owing == 0 and student.books_total
+                            > 0 else '○ No' }}</strong></div>
+                </div>
+                <div class="payment-heading">
+                    <div>
+                        <h2>Payment history</h2>
+                        <p>Every payment made for {{ term_name|lower }}.</p>
+                    </div>
+                </div>
+                <div class="payment-list">{% for payment in payments %}<div class="payment-row"><span
+                            class="payment-date">{{ payment['payment_date'] }}</span>
+                        <div class="payment-method"><b>{{ payment['method'] }}</b><span>{{ 'Books' if
+                                payment['category'] == 'books' else 'Fees' }} · {{ term_name }}</span></div>
+                        <span class="payment-amount">{{ payment['amount']|money }}</span><span
+                            class="payment-check">✓</span><span class="payment-actions">
+                            <details>
+                                <summary>Edit</summary>
+                                <form method="post" action="{{ url_for('edit_payment', payment_id=payment['id']) }}">
+                                    <input type="number" name="amount" value="{{ payment['amount'] }}" min="1"
+                                        required><input type="date" name="payment_date"
+                                        value="{{ payment['payment_date'] }}" required><select name="method">
+                                        <option {% if payment['method']=='MoMo' %}selected{% endif %}>MoMo</option>
+                                        <option {% if payment['method']=='Cash' %}selected{% endif %}>Cash</option>
+                                        <option {% if payment['method']=='Bank transfer' %}selected{% endif %}>Bank
+                                            transfer</option>
+                                    </select><select name="category">
+                                        <option value="fees" {% if payment['category']=='fees' %}selected{% endif %}>
+                                            Fees</option>
+                                        <option value="books" {% if payment['category']=='books' %}selected{% endif %}>
+                                            Books</option>
+                                    </select><button type="submit">Save</button>
+                                </form>
+                            </details>
+                            <form method="post" action="{{ url_for('delete_payment', payment_id=payment['id']) }}">
+                                <button type="submit">Delete</button>
+                            </form>
+                        </span>
+                    </div>{% endfor %}</div>
+                <details class="payment-entry">
+                    <summary class="primary-button">＋ Record payment</summary>
+                    <form class="payment-form" method="post" action="{{ url_for('record_payment') }}">
+                        <h3>Record payment</h3><input type="hidden" name="student_id" value="{{ student.id }}">
+                        <div class="form-row"><label>Amount paid (GH₵)<input type="number" name="amount" min="1"
+                                    required placeholder="e.g. 2500"></label><label>Date<input type="date"
+                                    name="payment_date" required></label><label>Method<select name="method">
+                                    <option>MoMo</option>
+                                    <option>Cash</option>
+                                    <option>Bank transfer</option>
+                                </select></label><label>Payment type<select name="category">
+                                    <option value="fees">Fees</option>
+                                    <option value="books">Books</option>
+                                </select></label><button class="primary-button" type="submit">Save payment</button>
+                        </div>
+                    </form>
+                </details>
+            </section>
+        </main>
+    </div>
+</body>
+
+</html>
